@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARCADE DMX Controller - Web Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #eee;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            border-radius: 8px;
+        }
+        
+        h1 {
+            color: #00ff00;
+            font-size: 2.5em;
+            text-shadow: 0 0 10px #00ff00;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            color: #00ffff;
+            font-size: 0.9em;
+        }
+        
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .control-group {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border: 1px solid #444;
+            border-radius: 6px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #00ff00;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+        
+        select, input, button {
+            width: 100%;
+            padding: 10px;
+            background: rgba(0, 255, 0, 0.1);
+            color: #00ff00;
+            border: 1px solid #00ff00;
+            border-radius: 4px;
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        select:hover, input:hover, button:hover {
+            background: rgba(0, 255, 0, 0.2);
+            box-shadow: 0 0 8px rgba(0, 255, 0, 0.5);
+        }
+        
+        button {
+            font-weight: bold;
+            margin-top: 10px;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .scenes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        
+        .scene-btn {
+            padding: 20px;
+            background: rgba(0, 255, 0, 0.1);
+            border: 2px solid #00ff00;
+            color: #00ff00;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: all 0.3s;
+        }
+        
+        .scene-btn:hover {
+            background: #00ff00;
+            color: #000;
+            transform: scale(1.05);
+        }
+        
+        .scene-btn.active {
+            background: #00ff00;
+            color: #000;
+            box-shadow: 0 0 15px #00ff00;
+        }
+        
+        .status-bar {
+            background: rgba(0, 255, 0, 0.1);
+            border: 1px solid #00ff00;
+            border-radius: 6px;
+            padding: 15px;
+            margin-top: 30px;
+        }
+        
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            margin: 8px 0;
+            font-size: 0.9em;
+        }
+        
+        .status-value {
+            color: #00ff00;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🎆 ARCADE DMX Controller</h1>
+            <p class="subtitle">Web Editor | Local Network Control Panel</p>
+        </header>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Active Scene</label>
+                <select id="sceneSelect">
+                    <option value="0">Red</option>
+                    <option value="1">Green</option>
+                    <option value="2">Blue</option>
+                    <option value="3">White</option>
+                    <option value="4">Cyan</option>
+                    <option value="5">Magenta</option>
+                    <option value="6">Yellow</option>
+                    <option value="7">Orange</option>
+                    <option value="8">Purple</option>
+                    <option value="9">Blackout</option>
+                </select>
+                <button onclick="activateScene()">Activate Scene</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Active Group</label>
+                <select id="groupSelect">
+                    <option value="0">Group 1 (LED PAR)</option>
+                    <option value="1">Group 2 (Spot/Moving)</option>
+                    <option value="2">Group 3 (LED Bar)</option>
+                    <option value="3">Group 4 (Laser)</option>
+                    <option value="4">Group 5 (Fog/Misc)</option>
+                </select>
+                <button onclick="selectGroup()">Select</button>
+            </div>
+            
+            <div class="control-group">
+                <label>Program</label>
+                <select id="programSelect">
+                    <option value="0">Rainbow Chase</option>
+                    <option value="1">Pulse</option>
+                    <option value="2">Strobe White</option>
+                    <option value="3">Strobe Color</option>
+                    <option value="4">DJ Mix</option>
+                    <option value="5">Slow Fade</option>
+                </select>
+                <button onclick="activateProgram()">Activate Program</button>
+            </div>
+            
+            <div class="control-group">
+                <label>BPM Speed</label>
+                <input type="range" id="bpmSlider" min="30" max="240" value="120" oninput="updateBPM()">
+                <div style="text-align: center; margin-top: 5px;">
+                    <span id="bpmValue" class="status-value">120 BPM</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Master Brightness</label>
+                <input type="range" id="brightnessSlider" min="0" max="255" value="255" oninput="updateBrightness()">
+                <div style="text-align: center; margin-top: 5px;">
+                    <span id="brightnessValue" class="status-value">100%</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Recording</label>
+                <button onclick="toggleRecording()" id="recordBtn">Start Recording</button>
+                <button onclick="playRecording()">Play Recording</button>
+            </div>
+        </div>
+        
+        <h2 style="color: #00ff00; margin-bottom: 15px;">Quick Scenes</h2>
+        <div class="scenes-grid">
+            <button class="scene-btn" onclick="quickScene(0)">🔴 Red</button>
+            <button class="scene-btn" onclick="quickScene(1)">🟢 Green</button>
+            <button class="scene-btn" onclick="quickScene(2)">🔵 Blue</button>
+            <button class="scene-btn" onclick="quickScene(3)">⚪ White</button>
+            <button class="scene-btn" onclick="quickScene(4)">🔷 Cyan</button>
+            <button class="scene-btn" onclick="quickScene(5)">🔶 Magenta</button>
+            <button class="scene-btn" onclick="quickScene(6)">🟡 Yellow</button>
+            <button class="scene-btn" onclick="quickScene(7)">🟠 Orange</button>
+            <button class="scene-btn" onclick="quickScene(8)">🟣 Purple</button>
+            <button class="scene-btn" onclick="quickScene(9)">⬛ Blackout</button>
+        </div>
+        
+        <div class="status-bar">
+            <div class="status-item">
+                <span>Status:</span>
+                <span class="status-value" id="statusText">Connecting...</span>
+            </div>
+            <div class="status-item">
+                <span>Free Memory:</span>
+                <span class="status-value" id="heapText">---</span>
+            </div>
+            <div class="status-item">
+                <span>Uptime:</span>
+                <span class="status-value" id="uptimeText">---</span>
+            </div>
+            <div class="status-item">
+                <span>Recording:</span>
+                <span class="status-value" id="recordingText">Stopped</span>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let isRecording = false;
+        const API_BASE = '/api';
+        
+        async function apiCall(endpoint, method = 'GET', params = {}) {
+            try {
+                let url = `${API_BASE}${endpoint}`;
+                if (method === 'GET' && Object.keys(params).length > 0) {
+                    const queryString = new URLSearchParams(params).toString();
+                    url += '?' + queryString;
+                }
+                
+                const response = await fetch(url, {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                return await response.json();
+            } catch (error) {
+                console.error('API Error:', error);
+                return null;
+            }
+        }
+        
+        async function activateScene() {
+            const sceneId = document.getElementById('sceneSelect').value;
+            await apiCall('/scene', 'POST', { id: sceneId });
+        }
+        
+        async function quickScene(id) {
+            document.getElementById('sceneSelect').value = id;
+            await activateScene();
+        }
+        
+        async function activateProgram() {
+            const groupId = document.getElementById('groupSelect').value;
+            const programId = document.getElementById('programSelect').value;
+            await apiCall('/program', 'POST', { group: groupId, id: programId });
+        }
+        
+        function selectGroup() {
+            console.log('Selected group:', document.getElementById('groupSelect').value);
+        }
+        
+        async function updateBPM() {
+            const bpm = document.getElementById('bpmSlider').value;
+            document.getElementById('bpmValue').textContent = bpm + ' BPM';
+            await apiCall('/bpm', 'POST', { bpm: bpm });
+        }
+        
+        async function updateBrightness() {
+            const brightness = document.getElementById('brightnessSlider').value;
+            const percent = Math.round((brightness / 255) * 100);
+            document.getElementById('brightnessValue').textContent = percent + '%';
+            await apiCall('/brightness', 'POST', { val: brightness });
+        }
+        
+        async function toggleRecording() {
+            isRecording = !isRecording;
+            const btn = document.getElementById('recordBtn');
+            const status = document.getElementById('recordingText');
+            
+            if (isRecording) {
+                await apiCall('/record/start', 'POST');
+                btn.textContent = 'Stop Recording';
+                status.textContent = 'Recording...';
+            } else {
+                await apiCall('/record/stop', 'POST');
+                btn.textContent = 'Start Recording';
+                status.textContent = 'Stopped';
+            }
+        }
+        
+        async function playRecording() {
+            if (!isRecording) {
+                await apiCall('/record/play', 'POST', { id: 0 });
+            }
+        }
+        
+        async function updateStatus() {
+            const status = await apiCall('/status', 'GET');
+            if (status) {
+                document.getElementById('statusText').textContent = status.status || 'error';
+                document.getElementById('heapText').textContent = (status.heap / 1024).toFixed(1) + ' KB';
+                document.getElementById('uptimeText').textContent = status.uptime + ' sec';
+            }
+        }
+        
+        setInterval(updateStatus, 1000);
+        updateStatus();
+    </script>
+</body>
+</html>
